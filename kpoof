@@ -103,21 +103,12 @@ port_list() {
   | sort -u
 }
 
-# Because *nix denies binding to ports below 1001, we assign a port of N+50000,
-# where `n` is a sub-1001 port. Much better to adhere to the security protocol
-# than to manipulate the bash binary.
-# See second caveat: https://stackoverflow.com/a/414258/4096495
-port_check() {
-  if [[ $1 -lt 1001 ]]; then
-    echo "$(($1+50000))";
-  else
-    echo $1;
-  fi
-}
-
+# Binding with port "0" will assign an unused port from the dynamic range
+# (49152-65535):
+# https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml
 port_x() {
   for i in $(port_list); do
-    echo $(port_check $i):${i}
+    echo 0:${i}
   done
 }
 
@@ -218,7 +209,6 @@ for arg in "$@"; do
   shift
   case "$arg" in
     "--help")       set -- "$@" "-h" ;;
-    "--port")       set -- "$@" "-p" ;;
     "--daemon")     set -- "$@" "-d" ;;
     "--killd")      set -- "$@" "-k" ;;
     "--killd-all")  set -- "$@" "-a" ;;
